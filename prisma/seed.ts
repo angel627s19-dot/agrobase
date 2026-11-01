@@ -4,7 +4,22 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('🌱 Starting database seed check...');
+
+  // If products and owner already exist, do not wipe data on redeploy
+  try {
+    const existingOwner = await prisma.user.findFirst({
+      where: { OR: [{ username: 'AGRO' }, { email: 'owner@sevlaniagro.com' }] },
+    });
+    const productCount = await prisma.product.count();
+
+    if (productCount > 0 && existingOwner) {
+      console.log('✅ Database already seeded with products and owner account. Preserving data.');
+      return;
+    }
+  } catch (checkErr) {
+    console.log('ℹ️ Fresh database tables detected, proceeding with seed initialization...');
+  }
 
   // 1. Clear existing data
   console.log('🧹 Clearing existing data...');
